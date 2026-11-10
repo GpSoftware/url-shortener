@@ -45,7 +45,7 @@
     }
   };
   var BASE_URL = __ENV["BASE_URL"] || "http://localhost:3000";
-  var longUrls = new import_data.SharedArray("urls para acortar", function() {
+  var longUrls = new import_data.SharedArray("urls to shorten", function() {
     return [
       "https://wikipedia.org",
       "https://grafana.com",

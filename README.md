@@ -1,6 +1,6 @@
 # URL Shortener
 
-## Docker Compose (desarrollo local)
+## Docker Compose (local development)
 
 ```sh
 docker compose up --build -d --wait
@@ -8,45 +8,45 @@ docker compose logs -f api
 docker compose down
 ```
 
-La API queda disponible en `http://localhost:3000` por defecto.
-`GET /health` permite comprobar que arranco. PostgreSQL y Redis tienen
-healthchecks y la API espera a que ambos esten listos antes de arrancar.
-Los datos se conservan en volumenes nombrados al detener los contenedores.
+The API is available at `http://localhost:3000` by default.
+Use `GET /health` to check that it has started. PostgreSQL and Redis have
+health checks, and the API waits for both services to be ready before starting.
+Data is preserved in named volumes when the containers are stopped.
 
-Compose toma las variables del archivo `.env` existente, sin modificarlo.
-Consulta [.env.example](./.env.example) para ver las opciones. Si no tienes
-un `.env`, puedes copiar ese ejemplo. Si cambias `PORT`, actualiza tambien
-`BASE_URL` con la URL publica correspondiente.
+Compose reads variables from the existing `.env` file without modifying it.
+See [.env.example](./.env.example) for the available options. If you do not
+have a `.env` file, you can copy that example. If you change `PORT`, also
+update `BASE_URL` to the corresponding public URL.
 
-Dentro de Docker, la API usa `postgres:5432` y `redis:6379`. Desde el host,
-PostgreSQL y Redis solo se publican en `127.0.0.1`, en los puertos
-`POSTGRES_PORT` (5432) y `REDIS_PORT` (6379). Estos puertos publicados no
-modifican las conexiones internas.
+Inside Docker, the API uses `postgres:5432` and `redis:6379`. From the host,
+PostgreSQL and Redis are only exposed on `127.0.0.1`, using ports
+`POSTGRES_PORT` (5432) and `REDIS_PORT` (6379). These published ports do not
+change the internal connections.
 
-`DB_USER`, `DB_PASSWORD` y `DB_NAME` se comparten entre la API y PostgreSQL.
-Las credenciales por defecto son solo para desarrollo. PostgreSQL aplica
-estas variables al inicializar un volumen vacio; cambiarlas despues no
-actualiza usuarios ni bases ya existentes.
+`DB_USER`, `DB_PASSWORD`, and `DB_NAME` are shared between the API and
+PostgreSQL. The default credentials are for development only. PostgreSQL
+applies these variables when initializing an empty volume; changing them later
+does not update existing users or databases.
 
-Compose activa `DB_SYNCHRONIZE=true` para crear las tablas al iniciar una
-base nueva, ya que el proyecto todavia no tiene migraciones. No usarlo en
-produccion ni con datos importantes: puede alterar el esquema. Fuera de
-Compose, la sincronizacion esta desactivada por defecto. Para produccion,
-implementar migraciones y definir `DB_SYNCHRONIZE=false`.
+Compose sets `DB_SYNCHRONIZE=true` to create tables when starting a new
+database because the project does not have migrations yet. Do not use this in
+production or with important data: it may alter the schema. Synchronization is
+disabled by default outside Compose. For production, implement migrations and
+set `DB_SYNCHRONIZE=false`.
 
-Redis persiste datos con AOF y expone `REDIS_URL` en la configuracion de
-la API. La aplicacion todavia no tiene un cliente Redis ni logica de cache.
+Redis persists data using AOF and exposes `REDIS_URL` in the API configuration.
+The application does not yet have a Redis client or caching logic.
 
-## API fuera de Docker
+## API Outside Docker
 
-Con PostgreSQL y Redis disponibles y `.env` configurado:
+With PostgreSQL and Redis available and `.env` configured:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-La API valida las variables de entorno antes de conectarse a PostgreSQL.
-`HOST` controla la interfaz de escucha local; Compose lo fija en `0.0.0.0`.
-La imagen usa Node.js 24, compila TypeScript en una etapa separada y ejecuta
-la API con dependencias de produccion y un usuario sin privilegios.
+The API validates environment variables before connecting to PostgreSQL.
+`HOST` controls the local listening interface; Compose sets it to `0.0.0.0`.
+The image uses Node.js 24, compiles TypeScript in a separate build stage, and
+runs the API with production dependencies under an unprivileged user.
