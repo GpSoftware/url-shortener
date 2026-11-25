@@ -8,6 +8,7 @@ export class RedisService {
   constructor(
     private redis: FastifyInstance["redis"],
     private log: FastifyInstance["log"],
+    private ttlSeconds: number,
   ) {}
 
   async get(key: string): Promise<CacheResult> {
@@ -21,7 +22,7 @@ export class RedisService {
 
   async set(key: string, value: string): Promise<boolean> {
     try {
-      await this.redis.set(key, value);
+      await this.redis.set(key, value, "EX", this.ttlSeconds);
       return true;
     } catch (error) {
       this.log.error({ err: error }, "Error writing Redis");

@@ -9,13 +9,6 @@ import {
 } from "typeorm";
 import { UrlEntity } from "../../modules/urls/url.entity.js";
 
-interface UserAgentData {
-  raw: string;
-  browser: { name: string; version: string };
-  os: { name: string; version: string };
-  device: { type: string; model: string; vendor: string };
-}
-
 @Entity("analytics")
 export class AnalyticsEntity {
   @PrimaryGeneratedColumn("uuid")
@@ -25,7 +18,7 @@ export class AnalyticsEntity {
   ip_address!: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  user_agent_details!: UserAgentData;
+  user_agent_details!: Record<string, string>;
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
   clicked_at!: Date;

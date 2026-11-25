@@ -13,6 +13,7 @@ export interface AppConfig {
   REDIS_COMMAND_TIMEOUT: number;
   REDIS_MAX_RETRIES_PER_REQUEST: number;
   REDIS_ENABLE_OFFLINE_QUEUE: boolean;
+  CACHE_TTL_SECONDS: number;
 }
 
 declare module "fastify" {
@@ -37,6 +38,7 @@ const schema = {
     },
     BASE_URL: {
       type: "string",
+      minLength: 1,
       default: "http://localhost:3000",
     },
     DB_HOST: { type: "string", default: "localhost", minLength: 1 },
@@ -50,6 +52,7 @@ const schema = {
     REDIS_COMMAND_TIMEOUT: { type: "integer", default: 100, minimum: 1 },
     REDIS_MAX_RETRIES_PER_REQUEST: { type: "integer", default: 2, minimum: 0 },
     REDIS_ENABLE_OFFLINE_QUEUE: { type: "boolean", default: false },
+    CACHE_TTL_SECONDS: { type: "integer", default: 86400, minimum: 1 },
   },
 };
 

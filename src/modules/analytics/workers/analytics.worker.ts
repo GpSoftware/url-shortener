@@ -3,7 +3,10 @@ import { Redis } from "ioredis";
 import { DataSource } from "typeorm";
 import { AnalyticsEntity } from "../analytics.entity.js";
 import { UrlEntity } from "../../urls/url.entity.js";
-import { AppError } from "../../../shared/app.error.js";
+import { persistClick } from "../analytics.persistence.js";
+import type { AnalyticsJobData } from "../analytics.service.js";
+import { UrlRepository } from "../../urls/url.repository.js";
+import { UrlLookupService } from "../../urls/url-lookup.service.js";
 
 const WorkerDataSource = new DataSource({
   type: "postgres",
@@ -20,6 +23,7 @@ const WorkerDataSource = new DataSource({
 });
 
 await WorkerDataSource.initialize();
+const urlLookup = new UrlLookupService(new UrlRepository(WorkerDataSource));
 console.log("📦 [Worker] Connection established");
 
 export const redisConnection = new Redis(
@@ -29,28 +33,10 @@ export const redisConnection = new Redis(
 
 console.log("⏳ [Worker] Initializing...");
 
-const worker = new Worker(
+const worker = new Worker<AnalyticsJobData>(
   'url-analytics',
   async (job) => {
-    const { url_code, ip, userAgent } = job.data;
-
-    console.log(`🤖 [Worker] Processing analytics with id: ${url_code}`);
-
-    const analyticsRepository = WorkerDataSource.getRepository(AnalyticsEntity);
-    const urlRepository = WorkerDataSource.getRepository(UrlEntity);
-    
-    const url = await urlRepository.findOneBy({ url_code });
-    if (!url) {
-      throw new AppError(`URL with code ${url_code} not found`, 404);
-    }
-    
-    const click = analyticsRepository.create({
-      url: url,
-      ip_address: ip,
-      user_agent_details: userAgent,
-    });
-
-    await analyticsRepository.save(click);
+    await persistClick(WorkerDataSource, urlLookup, job.data);
   },
   {
     connection: redisConnection,

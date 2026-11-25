@@ -22,6 +22,14 @@ export class UrlRepository {
     return this.repository.findOneOrFail({ where: { url_code: shortUrl } });
   }
 
+  async findIdByShortUrl(shortUrl: string) {
+    const url = await this.repository.findOne({
+      select: { id: true },
+      where: { url_code: shortUrl },
+    });
+    return url?.id ?? null;
+  }
+
   async deleteByShortUrl(shortUrl: string) {
     return this.repository.delete({ url_code: shortUrl });
   }

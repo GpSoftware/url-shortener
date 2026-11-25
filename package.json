@@ -10,6 +10,7 @@
     "start": "node ./dist/index.js",
     "typecheck": "npx tsc --noEmit",
     "start:worker": "tsx src/modules/analytics/workers/analytics.worker.ts",
+    "test": "npm run build && node --test \"tests/*.test.mjs\"",
     "test:load": "docker compose --profile load-test run --rm k6"
   },
   "keywords": [],

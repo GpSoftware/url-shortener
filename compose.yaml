@@ -15,13 +15,14 @@ services:
       DB_NAME: "${DB_NAME:-url_shortener}"
       DB_SYNCHRONIZE: "${DB_SYNCHRONIZE:-true}"
       REDIS_URL: redis://redis:6379
+      CACHE_TTL_SECONDS: "${CACHE_TTL_SECONDS:-86400}"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r => { if (!r.ok) process.exit(1); }).catch(() => process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/ready').then(r => { if (!r.ok) process.exit(1); }).catch(() => process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -76,6 +77,24 @@ services:
         condition: service_healthy
     restart: always 
 
+  load-fixture:
+    build: .
+    profiles: ["load-test"]
+    command: ["node", "./dist/scripts/load-fixture.js"]
+    environment:
+      API_URL: http://api:3000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/health').then(r => { if (!r.ok) process.exit(1); }).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   k6:
     image: grafana/k6
     profiles: ["load-test"]
@@ -83,9 +102,16 @@ services:
       - ./src/scripts/shortener-test.js:/scripts/shortener-test.js:ro
     environment:
       BASE_URL: http://api:3000
+      FIXTURE_URL: http://load-fixture:3001
+      LOAD_VUS: "${LOAD_VUS:-20}"
+      LOAD_DURATION: "${LOAD_DURATION:-1m}"
     depends_on:
       api:
         condition: service_healthy
+      load-fixture:
+        condition: service_healthy
+      worker:
+        condition: service_started
     command: ["run", "/scripts/shortener-test.js"]
 
 volumes:
