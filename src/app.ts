@@ -8,6 +8,7 @@ import dbPlugin from "./plugins/database.plugin.js";
 import bullMqPlugin from "./plugins/bullmq.plugin.js";
 import { EntityNotFoundError } from "typeorm";
 import { AppError } from "./shared/app.error.js";
+import isClientError from "./utils/is-client-error.js";
 
 import { createUrlController } from "./modules/urls/url.controller.js";
 
@@ -30,6 +31,12 @@ export default function buildApp(options = {}) {
     }
 
     if (error instanceof AppError) {
+      return reply.status(error.statusCode).send({
+        message: error.message,
+      });
+    }
+
+    if (isClientError(error)) {
       return reply.status(error.statusCode).send({
         message: error.message,
       });
