@@ -9,6 +9,10 @@ export interface AppConfig {
   DB_NAME: string;
   DB_SYNCHRONIZE: boolean;
   REDIS_URL: string;
+  REDIS_CONNECT_TIMEOUT: number;
+  REDIS_COMMAND_TIMEOUT: number;
+  REDIS_MAX_RETRIES_PER_REQUEST: number;
+  REDIS_ENABLE_OFFLINE_QUEUE: boolean;
 }
 
 declare module "fastify" {
@@ -42,6 +46,10 @@ const schema = {
     DB_NAME: { type: "string", default: "test", minLength: 1 },
     DB_SYNCHRONIZE: { type: "boolean", default: false },
     REDIS_URL: { type: "string", default: "redis://localhost:6379", minLength: 1 },
+    REDIS_CONNECT_TIMEOUT: { type: "integer", default: 10000, minimum: 1 },
+    REDIS_COMMAND_TIMEOUT: { type: "integer", default: 100, minimum: 1 },
+    REDIS_MAX_RETRIES_PER_REQUEST: { type: "integer", default: 2, minimum: 0 },
+    REDIS_ENABLE_OFFLINE_QUEUE: { type: "boolean", default: false },
   },
 };
 

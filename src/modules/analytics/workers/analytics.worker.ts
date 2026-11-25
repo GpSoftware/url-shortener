@@ -3,6 +3,7 @@ import { Redis } from "ioredis";
 import { DataSource } from "typeorm";
 import { AnalyticsEntity } from "../analytics.entity.js";
 import { UrlEntity } from "../../urls/url.entity.js";
+import { AppError } from "../../../shared/app.error.js";
 
 const WorkerDataSource = new DataSource({
   type: "postgres",
@@ -40,7 +41,7 @@ const worker = new Worker(
     
     const url = await urlRepository.findOneBy({ url_code });
     if (!url) {
-      throw new Error(`URL with code ${url_code} not found`);
+      throw new AppError(`URL with code ${url_code} not found`, 404);
     }
     
     const click = analyticsRepository.create({
